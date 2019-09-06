@@ -1,0 +1,38 @@
+SHELL=/bin/bash
+
+export ARCH=amd64
+export REGISTRY=elementalnet
+export VERSION=v1.15.3
+export KUBE_GIT_VERSION=$(VERSION)
+export REPO_VERSION=$(subst +,_,$(shell ./build-script-collection/get-version-git elemental-v))
+export SOURCE_DATE_EPOCH=$(shell git show -s --format=format:%ct HEAD)
+export CEPH_VERSION=mimic
+
+LOCAL_HYPERKUBE_IMAGE=$(REGISTRY)/hyperkube-$(ARCH):$(VERSION)
+HYPERKUBE_IMAGE=$(REGISTRY)/hyperkube-with-ceph:$(VERSION)-$(CEPH_VERSION)-$(REPO_VERSION)
+HYPERKUBE_IMAGE_LATEST=$(REGISTRY)/hyperkube-with-ceph:latest
+
+all: build push
+
+build: build-hyperkube build-debian-hyperkube-base-image build-hyperkube-image
+
+build-hyperkube:
+	./build/run.sh make hyperkube
+
+build-debian-hyperkube-base-image:
+	make -C build/debian-hyperkube-base build
+
+build-hyperkube-image:
+	make -C cluster/images/hyperkube build
+
+push: build
+	if [[ -z $$TRAVIS_BRANCH || $$TRAVIS_BRANCH == master ]]; then \
+	  docker tag '$(LOCAL_HYPERKUBE_IMAGE)' '$(HYPERKUBE_IMAGE_LATEST)'; \
+	  docker push '$(HYPERKUBE_IMAGE_LATEST)'; \
+	fi
+	if [[ $(REPO_VERSION) =~ ^[0-9]+\.[0-9]+.[0-9]+$$ ]]; then \
+	  docker tag '$(LOCAL_HYPERKUBE_IMAGE)' '$(HYPERKUBE_IMAGE)'; \
+	  docker push '$(HYPERKUBE_IMAGE)'; \
+	fi
+
+.PHONY: all build build-hyperkube build-debian-hyperkube-base-image build-hyperkube-image push

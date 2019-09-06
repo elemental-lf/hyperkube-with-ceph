@@ -1,0 +1,24 @@
+dist: xenial
+language: generic
+
+services:
+  - docker
+
+env:
+  global:
+    - DOCKER_USERNAME=elementalnet
+    - secure: 'Qx3pdvTNwR0J3f9Jwgew0jlRU4qP+y2mufIOKqFzrtwj8pYJVMiC9VeyrBQKferKzMvPt9c2Wwg5GknX0PWG2/UkK7O4O4GctUfXyy1aFccq8KRJGBzw0ITG3eZs5Zw5O23CCKjSriq2q5DfrM+rVd06D7DXDLLVF8AICN/+YbByein0dy3HbCFA9Pu72JhmYygaumfKYSwfaSu7+h3kR4L5ReJ0VKyoJ1FJezCLkSuWddQT0S15HJF20Qm/36f3uxQ+vZdfNwRAim5W68yZrG92vrsGqd7vW52OcmNjFgOMy8MFigja1By0sJeWfq3VdAuEYJ+tEL+AYvrsqWyXUAa0Br9lN7wa8tZzjSho3kPGKEDdZve+byeW5My5Z18gzWHmf3ogc2KTxRd3fZfYpcniOMnKfS3IlW7hVxrP7svi+erUMXD2qQPQ85p0nrO5C5Z5jy+gnS3V6oH08S1APDY2BRUsQ1wqrq7odzWNCHgNVB10Yad7Tc5IavFory4XcHiCLfgamY/RD8GX/seKjxvy5wr2HTedYoegnzbUFrsixip/CYbOJUHYyxe/QtZh4BtGczdsGp5fUflN0nGPUOn67A5moFM5hu1k0ceUoeZbC63ZiSBXuNA52VqOv4lNS7sZsnzQR6nt/P0KH52ZsnFjN0fun/2T7Wx4iE0I1AY='
+
+before_install:
+  - curl --retry 5 -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - travis_retry sudo apt-get update
+  - travis_retry sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+  - docker version
+
+install:
+  - make -f Makefile.elemental build 2>&1 | grep -v ^I0906
+
+script:
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+  - make -f Makefile.elemental push 2>&1 | grep -v ^I0906
