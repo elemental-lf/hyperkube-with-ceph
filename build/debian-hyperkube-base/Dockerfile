@@ -38,6 +38,10 @@ RUN echo CACHEBUST>/dev/null && clean-install \
 RUN echo "dash dash/sh boolean false" | debconf-set-selections
 RUN DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
 
+RUN echo CACHEBUST>/dev/null && clean-install apt-transport-https ca-certificates gnupg2 curl \
+ && curl -sSL https://mirror.croit.io/keys/release.asc | apt-key add - \
+ && echo 'deb https://mirror.croit.io/debian-mimic/ stretch main' >/etc/apt/sources.list.d/croit-ceph.list
+
 RUN echo CACHEBUST>/dev/null && clean-install \
     ca-certificates \
     ceph-common \
@@ -56,6 +60,7 @@ RUN echo CACHEBUST>/dev/null && clean-install \
     openssh-client \
     netbase \
     nfs-common \
+    rbd-nbd \
     socat \
     udev \
     util-linux

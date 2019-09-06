@@ -22,7 +22,7 @@ ARCH?=amd64
 OUT_DIR?=_output
 HYPERKUBE_BIN?=$(shell pwd)/../../../$(OUT_DIR)/dockerized/bin/linux/$(ARCH)/hyperkube
 
-BASEIMAGE=k8s.gcr.io/debian-hyperkube-base-$(ARCH):0.12.1
+BASEIMAGE=elementalnet/debian-hyperkube-base-$(ARCH):0.12.1
 TEMP_DIR:=$(shell mktemp -d -t hyperkubeXXXXXX)
 
 all: build
@@ -39,7 +39,7 @@ endif
 
 	cd ${TEMP_DIR} && sed -i.back "s|BASEIMAGE|${BASEIMAGE}|g" Dockerfile
 
-	docker build --pull -t ${REGISTRY}/hyperkube-${ARCH}:${VERSION} ${TEMP_DIR}
+	docker build -t ${REGISTRY}/hyperkube-${ARCH}:${VERSION} ${TEMP_DIR}
 	rm -rf "${TEMP_DIR}"
 
 push: build
